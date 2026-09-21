@@ -19,7 +19,7 @@
  * Difficulty: 1
  */
 int bitAnd(int x, int y) {
-    return 2;
+    return ~(~x|~y);
 }
 
 /*
@@ -30,7 +30,7 @@ int bitAnd(int x, int y) {
  *   Difficulty: 1
  */
 int bitXor(int x, int y) {
-    return 2;
+    return ~(~x&~y)&(~(x&y));
 }
 
 /*
@@ -50,7 +50,11 @@ int bitXor(int x, int y) {
  *   1 if x and y have the same sign , 0 otherwise.
  */
 int samesign(int x, int y) {
-    return 2;
+    if(x){
+        if(y) return !((x^y)>>31);
+        return 0;
+    }
+    return !y;
 }
 
 /*
@@ -63,7 +67,26 @@ int samesign(int x, int y) {
  *   Difficulty: 4
  */
 int logtwo(int v) {
-    return 2;
+    int res = 0, a;
+    a = (v>0xFFFF)<<4;
+    res = res | a;
+    v = v >> a;
+
+    a = (v>0xFF)<<3;
+    res = res | a;
+    v = v >> a;
+    
+    a = (v>0xF)<<2;
+    res = res | a;
+    v = v >> a;
+    
+    a = (v>3)<<1;
+    res = res | a;
+    v = v >> a;
+    
+    a = v>1;
+    res = res | a;
+    return res;
 }
 
 /*
@@ -76,7 +99,10 @@ int logtwo(int v) {
  *    Difficulty: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+    n = n << 3,m = m << 3;
+    int t = ((x>>n)^(x>>m))&255;
+    x = x^(t<<n)^(t<<m);
+    return x;
 }
 
 /*
@@ -88,7 +114,23 @@ int byteSwap(int x, int n, int m) {
  *   Difficulty: 3
  */
 unsigned reverse(unsigned v) {
-    return 2;
+    unsigned low,high;
+    low = v&0x0000FFFF, high = v&0xFFFF0000;
+    v = low<<16|high>>16;
+    
+    low = v&0x00FF00FF, high = v&0xFF00FF00;
+    v = low<<8|high>>8;
+    
+    low = v&0x0F0F0F0F, high = v&0xF0F0F0F0;
+    v = low<<4|high>>4;
+    
+    low = v&0x33333333, high = v&0xCCCCCCCC;
+    v = low<<2|high>>2;
+    
+    low = v&0x55555555, high = v&0xAAAAAAAA;
+    v = low<<1|high>>1;
+    
+    return v;
 }
 
 /*
@@ -100,7 +142,8 @@ unsigned reverse(unsigned v) {
  *   Difficulty: 3
  */
 int logicalShift(int x, int n) {
-    return 2;
+    int a = x&2147483647,b = (x>>31&1);
+    return (b << (31^n)) | a >> n;
 }
 
 /*
@@ -112,7 +155,36 @@ int logicalShift(int x, int n) {
  *   Difficulty: 4
  */
 int leftBitCount(int x) {
-    return 2;
+    int res=0,v,t;
+    v = x&0xFFFF0000;
+    t = !~(v|0x0000FFFF);
+    res += t<<4;
+    x >>= ((!t)<<4);
+
+    v = x&0xFFFFFF00;
+    t = !~(v|0x000000FF);
+    res += t<<3;
+    x >>= ((!t)<<3);
+    
+    v = x&0xFFFFFFF0;
+    t = !~(v|0x0000000F);
+    res += t<<2;
+    x >>= ((!t)<<2);
+    
+    v = x&0xFFFFFFFC;
+    t = !~(v|0x00000003);
+    res += t<<1;
+    x >>= ((!t)<<1);
+
+    v = x&0xFFFFFFFE;
+    t = !~(v|0x00000001);
+    res += t;
+    x >>= (!t);
+
+    v = x;//x&0xFFFFFFFF
+    t = !~v;
+    res += t;
+    return res;
 }
 
 /*
@@ -124,7 +196,24 @@ int leftBitCount(int x) {
  *   Difficulty: 4
  */
 unsigned float_i2f(int x) {
-    return 2;
+    if(!x) return 0;
+    unsigned S=0;
+    int mx=-1;
+    if(x>>31) S=0x80000000,x = -x;
+    unsigned y=x;
+    while(y) y>>=1,mx++;
+    x-=1u<<mx;
+    if(mx<=23) x<<=(23-mx); 
+    else{
+        unsigned now=mx-23,low=x&((1u<<now)-1);
+        unsigned key = 1u<<(now-1);
+        x >>= now;
+        if((low+(x&1))>key){
+            x += 1;
+        }
+        if(x>>23) mx++,x=0;
+    }
+    return S|((mx+127)<<23)|x;
 }
 
 /*
@@ -138,8 +227,8 @@ unsigned float_i2f(int x) {
  *   Max ops: 30
  *   Difficulty: 4
  */
-unsigned floatScale2(unsigned uf) {
-    return 2;
+unsigned floatScale2(unsigned x) {
+    return 0;
 }
 
 /*
