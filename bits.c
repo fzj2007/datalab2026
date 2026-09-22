@@ -228,7 +228,18 @@ unsigned float_i2f(int x) {
  *   Difficulty: 4
  */
 unsigned floatScale2(unsigned x) {
-    return 0;
+    unsigned E = x&0x7F800000,F = x&0x007FFFFF;
+    if(E==0x7F800000) return x;
+    if(E){
+        E+=0x00800000;
+        if(E==0x7F800000) F=0;
+    }
+    else{
+        F<<=1;
+        E+= F&0x7F800000;
+        F &= 0x007FFFFF;
+    }
+    return (x&0x80000000)|E|F;
 }
 
 /*
@@ -245,7 +256,14 @@ unsigned floatScale2(unsigned x) {
  *   Difficulty: 3
  */
 int float64_f2i(unsigned uf1, unsigned uf2) {
-    return 2;
+    unsigned E = (uf2 >> 20) & 2047,H = uf2 & 0x000FFFFF;
+    if(E >= 1054) return 0x80000000;
+    if(E < 1023) return 0;
+    int res=(1<<(E-1023));
+    if(E > 1043) res |=(H << (E-1043))|(uf1>>(1075-E));
+    else res |= (H >> (1043-E));
+    if(uf2>>31) res = -res;
+    return res;
 }
 
 /*
@@ -262,5 +280,8 @@ int float64_f2i(unsigned uf1, unsigned uf2) {
  *   Difficulty: 4
  */
 unsigned floatPower2(int x) {
-    return 2;
+    if(x<=-150) return 0;
+    if(x<=-126) return 1<<(149+x);
+    if(x>127) return 0x7F800000;
+    return (x+127)<<23;
 }
